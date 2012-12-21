@@ -152,44 +152,148 @@ class Part1 implements hxparser.common.Parser<PTokens>
 			case ' '.code, '\t'.code, '\n'.code, '\r'.code: //empty space
 			case '.'.code, '0'.code, '1'.code, '2'.code, '3'.code, '4'.code, '5'.code, '6'.code, '7'.code, '8'.code, '9'.code:
 				//int or float
-				var buf = new StringBuf();
-				while( char >= '0'.code && char <= '9'.code ) {
-					buf.addChar(char);
-					c = nextChar();
-				}
-				switch char
+				function mkInt(buf, rx, c)
 				{
-				case 'x'.code, 'X'.code:
-					if (buf.toString() == '0')
+						switch(c)
+						{
+						case 'L'.code, 'l'.code:
+							c = char();
+							if (c == 'L'.code || c == 'l'.code)
+							{
+								c = char();
+								if (c == 'U'.code || c == 'u'.code)
+									return PConst( CLongLong(buf.toString(), rx, true) );
+								addChar(c);
+								return PConst( CLongLong(buf.toString(), rx, false) );
+							} else if (c == 'U'.code || c == 'u'.code)
+								return PConst( CLong(buf.toString(), rx, true) );
+							addChar(c);
+							return PConst( CLong(buf.toString(), rx, false) );
+						case 'U'.code, 'u'.code:
+							return PConst( CInt(buf.toString(), rx, true) );
+						case 'F'.code, 'f'.code:
+							return PConst( CFloat(buf.toString()) );
+						default:
+							addChar(c);
+							return PConst( CInt(buf.toString(), rx, false) );
+						}
+				}
+				
+				var rx = Decimal, buf = new StringBuf(), isFloat = false;
+				if (c == '0'.code)
+				{
+					c = char();
+					switch c
 					{
+					case 'x'.code, 'X'.code:
+						
 						while ( isHex(c = char()) )
 						{
 							buf.addChar(c);
 						}
+						return mkInt( buf, Hexadecimal, c );
+					case '.'.code:
+						do {
+							buf.addChar(c);
+							c = char();
+						} while ( isDigit(c) );
+						
+						var s = buf.toString();
+						if (s == ".")
+							return PDot;
+						
+						isFloat = true;
+					default:
+						rx = Octal;
 					}
+				} else {
+					buf.addChar(c);
+				}
+				
+				while ( c >= '0'.code && c <= '9'.code || c == '.'.code )
+				{
+					if (c == '.'.code)
+					{
+						if (isFloat) //already has '.'
+						{
+							//shouldn't happen
+							p.error(new PreprocessingError(src, "Syntax Error", pos, pos));
+							
+							addChar(c);
+							return PConst( CDouble( buf.toString() ) );
+						}
+						
+						isFloat = true;
+					}
+					
+					buf.addChar(c);
+					c = char();
+				}
+				
+				switch c 
+				{
+				case 'a'.code, 'A'.code, 'b'.code, 'B'.code, 'c'.code, 'C'.code, 'd'.code, 'D'.code, 'e'.code, 'E'.code, 'f'.code, 'F'.code, 'p'.code, 'P'.code:
+					var hex = (c != 'f'.code && c != 'F'.code);
+					buf.addChar(c);
+					while(isHex(c))
+					{
+						hex = true;
+						c = char();
+						buf.addChar(c);
+					};
+					
+					//exponent part
+					
+				case '.'.code:
+					do {
+						buf.addChar(c);
+						c = char();
+					} while ( isDigit(c) );
+					
+					var s = buf.toString();
+					if (s == ".")
+						return PDot;
+					
+					if (c == 'f'.code || c == 'F'.code)
+					{
+						return PConst( CFloat( s ) );
+					} else if (c == 'l'.code || c == 'L'.code)
+					{
+						return PConst( CLongDouble( s ) );
+					}
+					
+					addChar(c);
+					return PConst( CDouble( s ) );
+				case 'e'.code, 'E'.code:
+					if (buf.toString() == ".") //dot only
+					{
+						addChar(c);
+						return PDot;
+					}
+					
+					c = char();
+					if (c == '-'.code || c == '+'.code)
+					{
+						buf.addChar(c);
+						c = char();
+					}
+					while (isDigit(c))
+					{
+						buf.addChar(c);
+						c = char();
+					}
+					
+					if (c == 'f'.code || c == 'F'.code)
+						return PConst( CFloat( buf.toString() ) );
+					else if (c == 'l'.code || c == 'L'.code)
+						return PConst( CLongDouble( buf.toString()) ) );
+					
+					addChar(c);
+					return PConst( CDouble( buf.toString() ) );
+				default:
 					
 				}
 			
-			}
-		}
-		
-		if (isDigit(c))
-		{
-			//int or float
-			var type = Decimal;
-			if (c == '0'.code)
-			{
-				//octal or hex
-				var c2 = char();
-				if ( c2 == 'x'.code || c2 == 'X'.code )
-				{
-					//hex
-					type = Hexadecimal;
-					while ( isHex( c = char() ) )
-					{
-						
-					}
-				}
 			}
 		}
 	}

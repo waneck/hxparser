@@ -12,7 +12,7 @@ class MacroRuntime
 		* The universal character name \Unnnnnnnn designates the 
 		* character whose character short identiﬁer (as speciﬁed by 
 		* ISO/IEC 10646) is nnnnnnnn
-	 * 
+	 * 6.10.8 Predeﬁned macro names
 	 * 
 	 */
 	

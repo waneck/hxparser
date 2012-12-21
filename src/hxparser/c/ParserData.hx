@@ -21,6 +21,7 @@ enum Const
 	CInt( v : String, r : Radix, unsgined:Bool );
 	CFloat( f : String );
 	CDouble( f : String );
+	CLongDouble( v : String );
 	CString( s : String );
 	CChar( c : String );
 }

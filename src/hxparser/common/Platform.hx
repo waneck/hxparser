@@ -25,8 +25,9 @@ class Platform
 		#end
 	}
 	
-	public dynamic function error(e:Error):Void
+	public dynamic function error(e:Error, ?pos:PosInfos):Void
 	{
+		haxe.Log.trace("ERROR " + e, pos);
 		throw e;
 	}
 }
