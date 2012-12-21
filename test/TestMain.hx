@@ -1,5 +1,6 @@
 package ;
 
+import hxparser.common.Error;
 import neko.Lib;
 
 /**
@@ -12,7 +13,7 @@ class TestMain
 	
 	static function main() 
 	{
-		
+		var e = Error;
 	}
 	
 }
